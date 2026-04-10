@@ -9,6 +9,7 @@ import logging
 import subprocess
 from datetime import datetime
 
+from hermes_cli import run_hermes_chat
 from retry_utils import retry_with_backoff
 
 logger = logging.getLogger("flipper.price_researcher")
@@ -22,14 +23,10 @@ class PriceResearcher:
 
     def research(self, item_data):
         """
-        Research market prices for an item
+        Research market prices for an item.
 
-        Returns dict with:
-        - suggested_price: Recommended price
-        - price_range: (min, max) observed prices
-        - ebay_sold: Recent eBay sold prices
-        - fb_marketplace: Current Facebook listings
-        - comp_count: Number of comparables found
+        Always returns a pricing dict; on Hermes/network failure uses category fallback
+        so batch workflows do not abort.
         """
         title = item_data.get("title", "")
         brand = item_data.get("brand", "")
@@ -40,7 +37,11 @@ class PriceResearcher:
         logger.info("Price research search_query=%r", search_query)
         print(f"   Searching: '{search_query}'...")
 
-        pricing_data = self._search_ebay_sold(search_query)
+        try:
+            pricing_data = self._search_ebay_sold(search_query)
+        except Exception as exc:
+            logger.exception("Price research unexpected error: %s", exc)
+            pricing_data = {"prices": []}
 
         if pricing_data["prices"]:
             avg_price = sum(pricing_data["prices"]) / len(pricing_data["prices"])
@@ -64,21 +65,12 @@ class PriceResearcher:
     def _search_ebay_sold(self, query):
         """Search eBay sold listings for comparable prices"""
 
+        full_query = (
+            f'Search eBay sold listings for "{query}" and extract the last 5 sold prices'
+        )
+
         def _run_hermes():
-            return subprocess.run(
-                [
-                    "hermes",
-                    "chat",
-                    "-q",
-                    (
-                        f'Search eBay sold listings for "{query}" '
-                        "and extract the last 5 sold prices"
-                    ),
-                ],
-                capture_output=True,
-                text=True,
-                timeout=30,
-            )
+            return run_hermes_chat(full_query, timeout=30)
 
         prices = []
         try:
@@ -98,8 +90,7 @@ class PriceResearcher:
             # MVP: structured parsing when Hermes returns JSON; mock until then
             prices = [29.99, 34.99, 27.50, 32.00, 30.00]
         except FileNotFoundError:
-            logger.exception("Hermes CLI not found for price research")
-            raise
+            logger.warning("Hermes CLI not found; skipping eBay search")
         except subprocess.TimeoutExpired as exc:
             logger.warning("eBay search timed out after retries: %s", exc)
         except Exception as exc:

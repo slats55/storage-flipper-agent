@@ -1,7 +1,5 @@
 # Storage Flipper Agent Requirements
-
-# Core
-python>=3.8
+# Requires Python 3.8+ (install from python.org or winget; not installable via pip)
 
 # Google Sheets integration (optional for MVP)
 # gspread>=5.0.0

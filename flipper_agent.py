@@ -47,12 +47,8 @@ class FlipperAgent:
         print(f"   Found: {item_data.get('title', 'Unknown item')}")
 
         print("\n💰 Step 2: Researching market prices...")
-        try:
-            pricing_data = self.researcher.research(item_data)
-            item_data.update(pricing_data)
-        except Exception as exc:
-            logger.exception("Price research failed: %s", exc)
-            raise
+        pricing_data = self.researcher.research(item_data)
+        item_data.update(pricing_data)
         print(f"   Suggested price: ${item_data.get('suggested_price', 0):.2f}")
 
         print("\n📝 Step 3: Generating listings...")

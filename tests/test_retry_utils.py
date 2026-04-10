@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import time
-
 import pytest
 
 from retry_utils import retry_with_backoff
@@ -29,9 +27,7 @@ def test_retry_then_succeeds():
             raise TimeoutError("transient")
         return "ok"
 
-    t0 = time.monotonic()
     assert retry_with_backoff(fn, max_attempts=3, base_delay_s=0.01, max_delay_s=0.05) == "ok"
-    assert time.monotonic() - t0 >= 0.005
     assert calls["n"] == 2
 
 

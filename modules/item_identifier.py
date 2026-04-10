@@ -10,6 +10,7 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
+from hermes_cli import run_hermes_chat
 from retry_utils import retry_with_backoff
 
 logger = logging.getLogger("flipper.item_identifier")
@@ -20,9 +21,19 @@ class ItemIdentifier:
 
     def __init__(self):
         self.categories = [
-            "Electronics", "Furniture", "Tools", "Collectibles",
-            "Clothing", "Household", "Toys", "Books", "Appliances",
-            "Sporting Goods", "Jewelry", "Art", "Musical Instruments",
+            "Electronics",
+            "Furniture",
+            "Tools",
+            "Collectibles",
+            "Clothing",
+            "Household",
+            "Toys",
+            "Books",
+            "Appliances",
+            "Sporting Goods",
+            "Jewelry",
+            "Art",
+            "Musical Instruments",
         ]
 
     def identify(self, photo_path):
@@ -56,18 +67,10 @@ class ItemIdentifier:
 
 Format as JSON."""
 
+        full_query = f"Analyze image {photo_path} and answer: {question}"
+
         def _run_hermes():
-            return subprocess.run(
-                [
-                    "hermes",
-                    "chat",
-                    "-q",
-                    f"Analyze image {photo_path} and answer: {question}",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=60,
-            )
+            return run_hermes_chat(full_query, timeout=60)
 
         try:
             result = retry_with_backoff(
@@ -96,8 +99,8 @@ Format as JSON."""
                 "raw_analysis": result.stdout if result.returncode == 0 else "Analysis pending",
             }
         except FileNotFoundError:
-            logger.exception("Hermes CLI not found; install or add to PATH")
-            raise
+            logger.warning("Hermes CLI not found; using filename fallback")
+            item_data = self._fallback_item_data(photo_path)
         except subprocess.TimeoutExpired as exc:
             logger.warning("Vision analysis timed out after retries: %s", exc)
             item_data = self._fallback_item_data(photo_path)
