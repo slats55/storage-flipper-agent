@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from listing_generator import ListingGenerator
+from modules.listing_generator import ListingGenerator
 
 
 def test_generate_all_platforms():

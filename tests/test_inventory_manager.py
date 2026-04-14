@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import csv
 
-from inventory_manager import INVENTORY_FIELDS, InventoryManager
+from modules.inventory_manager import INVENTORY_FIELDS, InventoryManager
 
 
 def test_add_item_writes_csv_and_json(tmp_path):

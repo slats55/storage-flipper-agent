@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from agent_logging import configure_logging
+from modules.agent_logging import configure_logging
 
 
 @pytest.fixture(autouse=True)

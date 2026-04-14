@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from retry_utils import retry_with_backoff
+from modules.retry_utils import retry_with_backoff
 
 
 def test_retry_succeeds_first_try():

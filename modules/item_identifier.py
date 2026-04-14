@@ -13,8 +13,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from hermes_cli import run_hermes_chat
-from retry_utils import retry_with_backoff
+from modules.hermes_cli import run_hermes_chat
+from modules.json_extract import extract_json_object_string
+from modules.retry_utils import retry_with_backoff
 
 logger = logging.getLogger("flipper.item_identifier")
 
@@ -166,7 +167,7 @@ Format as JSON."""
         if not raw_text or not raw_text.strip():
             return None
 
-        candidate = self._extract_json_string(raw_text.strip())
+        candidate = extract_json_object_string(raw_text.strip())
         if candidate is None:
             return None
 
@@ -183,66 +184,6 @@ Format as JSON."""
         if not self._vision_parse_has_signal(normalized):
             return None
         return normalized
-
-    def _extract_json_string(self, text: str) -> Optional[str]:
-        """Return a JSON object/array substring suitable for ``json.loads``."""
-        # Markdown fenced block
-        fence = re.search(
-            r"```(?:json)?\s*([\s\S]*?)\s*```",
-            text,
-            re.IGNORECASE,
-        )
-        if fence:
-            inner = fence.group(1).strip()
-            if inner:
-                text = inner
-
-        text = text.strip()
-        try:
-            json.loads(text)
-            return text
-        except json.JSONDecodeError:
-            pass
-
-        start = text.find("{")
-        if start == -1:
-            return None
-        end = self._find_matching_brace(text, start)
-        if end == -1:
-            return None
-        snippet = text[start : end + 1]
-        try:
-            json.loads(snippet)
-            return snippet
-        except json.JSONDecodeError:
-            return None
-
-    @staticmethod
-    def _find_matching_brace(text: str, start: int) -> int:
-        """Index of closing ``}`` for object starting at ``start``, or -1."""
-        depth = 0
-        in_string: Optional[str] = None
-        escape = False
-        for i in range(start, len(text)):
-            ch = text[i]
-            if in_string:
-                if escape:
-                    escape = False
-                elif ch == "\\":
-                    escape = True
-                elif ch == in_string:
-                    in_string = None
-                continue
-            if ch in ('"', "'"):
-                in_string = ch
-                continue
-            if ch == "{":
-                depth += 1
-            elif ch == "}":
-                depth -= 1
-                if depth == 0:
-                    return i
-        return -1
 
     def _normalize_vision_dict(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Map common Hermes / API keys to canonical fields."""

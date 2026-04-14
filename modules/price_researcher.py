@@ -5,12 +5,16 @@ Researches market prices across platforms
 
 from __future__ import annotations
 
+import json
 import logging
+import re
 import subprocess
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from hermes_cli import run_hermes_chat
-from retry_utils import retry_with_backoff
+from modules.hermes_cli import run_hermes_chat
+from modules.json_extract import extract_json_value_string
+from modules.retry_utils import retry_with_backoff
 
 logger = logging.getLogger("flipper.price_researcher")
 
@@ -66,13 +70,15 @@ class PriceResearcher:
         """Search eBay sold listings for comparable prices"""
 
         full_query = (
-            f'Search eBay sold listings for "{query}" and extract the last 5 sold prices'
+            f'Search eBay sold listings for "{query}" and return a JSON object with '
+            f'sold prices. Use keys like "sold_prices" or "prices" with an array of '
+            f"numbers (USD), or a list of objects with a price field."
         )
 
         def _run_hermes():
             return run_hermes_chat(full_query, timeout=30)
 
-        prices = []
+        prices: List[float] = []
         try:
             result = retry_with_backoff(
                 _run_hermes,
@@ -87,8 +93,14 @@ class PriceResearcher:
                     result.returncode,
                     (result.stderr or "").strip()[:500],
                 )
-            # MVP: structured parsing when Hermes returns JSON; mock until then
-            prices = [29.99, 34.99, 27.50, 32.00, 30.00]
+            raw_stdout = (result.stdout or "").strip()
+            if result.returncode == 0 and raw_stdout:
+                parsed = self._parse_pricing_response(raw_stdout)
+                if parsed:
+                    prices = parsed
+                    logger.debug("Parsed %s comparable prices from Hermes stdout", len(prices))
+                else:
+                    logger.debug("eBay stdout present but no structured prices parsed")
         except FileNotFoundError:
             logger.warning("Hermes CLI not found; skipping eBay search")
         except subprocess.TimeoutExpired as exc:
@@ -98,7 +110,87 @@ class PriceResearcher:
 
         return {"prices": prices}
 
-    def _estimate_by_category(self, category):
+    def _parse_pricing_response(self, raw_text: str) -> Optional[List[float]]:
+        """
+        Parse Hermes stdout into a list of comparable sold prices (floats).
+
+        Accepts JSON object or array (plain or in markdown fence). Normalizes keys such as
+        ``sold_prices``, ``prices``, ``comps`` with ``price`` fields, etc.
+
+        Returns None if nothing usable is found.
+        """
+        if not raw_text or not raw_text.strip():
+            return None
+
+        candidate = extract_json_value_string(raw_text.strip())
+        if candidate is None:
+            return None
+
+        try:
+            data = json.loads(candidate)
+        except json.JSONDecodeError as exc:
+            logger.debug("Pricing JSON decode failed: %s", exc)
+            return None
+
+        prices = self._normalize_pricing_data(data)
+        if not prices:
+            return None
+        return prices
+
+    def _normalize_pricing_data(self, data: Any) -> List[float]:
+        """Collect positive float prices from dict or list JSON."""
+        out: List[float] = []
+        if isinstance(data, list):
+            out.extend(_floats_from_sequence(data))
+        elif isinstance(data, dict):
+            for key in (
+                "prices",
+                "sold_prices",
+                "ebay_sold_prices",
+                "comparable_prices",
+                "comps_prices",
+                "recent_sold_prices",
+            ):
+                val = data.get(key)
+                if isinstance(val, list):
+                    out.extend(_floats_from_sequence(val))
+            comps = data.get("comparables") or data.get("comps") or data.get("sales")
+            if isinstance(comps, list):
+                for row in comps:
+                    if isinstance(row, dict):
+                        for pk in ("price", "sold_price", "amount", "sale_price"):
+                            if pk in row and row[pk] is not None:
+                                p = _to_positive_float(row[pk])
+                                if p is not None:
+                                    out.append(p)
+                                break
+                    else:
+                        p = _to_positive_float(row)
+                        if p is not None:
+                            out.append(p)
+            pr = data.get("price_range") or data.get("priceRange")
+            if isinstance(pr, dict):
+                for pk in ("min", "max", "low", "high"):
+                    if pk in pr:
+                        p = _to_positive_float(pr[pk])
+                        if p is not None:
+                            out.append(p)
+            elif isinstance(pr, (list, tuple)) and len(pr) >= 2:
+                for x in pr[:2]:
+                    p = _to_positive_float(x)
+                    if p is not None:
+                        out.append(p)
+
+        # Dedupe preserving order
+        seen = set()
+        unique: List[float] = []
+        for p in out:
+            if p not in seen:
+                seen.add(p)
+                unique.append(p)
+        return unique
+
+    def _estimate_by_category(self, category: str) -> float:
         """Fallback pricing estimates by category"""
         estimates = {
             "Electronics": 45.00,
@@ -117,3 +209,39 @@ class PriceResearcher:
             "General": 20.00,
         }
         return estimates.get(category, 20.00)
+
+
+def _floats_from_sequence(seq: List[Any]) -> List[float]:
+    out: List[float] = []
+    for x in seq:
+        if isinstance(x, dict):
+            for pk in ("price", "sold_price", "amount", "sale_price", "value"):
+                if pk in x and x[pk] is not None:
+                    p = _to_positive_float(x[pk])
+                    if p is not None:
+                        out.append(p)
+                    break
+        else:
+            p = _to_positive_float(x)
+            if p is not None:
+                out.append(p)
+    return out
+
+
+def _to_positive_float(value: Any) -> Optional[float]:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        p = float(value)
+        return p if p > 0 else None
+    s = str(value).strip()
+    if not s:
+        return None
+    s = re.sub(r"[^\d.\-]", "", s.replace(",", ""))
+    if not s or s in ("-", ".", "-."):
+        return None
+    try:
+        p = float(s)
+        return p if p > 0 else None
+    except ValueError:
+        return None

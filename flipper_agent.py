@@ -13,14 +13,14 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-# Add modules to path
-sys.path.insert(0, str(Path(__file__).parent / "modules"))
+# Project root on path so ``modules.*`` imports resolve
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from agent_logging import configure_logging
-from inventory_manager import InventoryManager
-from item_identifier import ItemIdentifier
-from listing_generator import ListingGenerator
-from price_researcher import PriceResearcher
+from modules.agent_logging import configure_logging
+from modules.inventory_manager import InventoryManager
+from modules.item_identifier import ItemIdentifier
+from modules.listing_generator import ListingGenerator
+from modules.price_researcher import PriceResearcher
 
 logger = logging.getLogger("flipper.flipper_agent")
 

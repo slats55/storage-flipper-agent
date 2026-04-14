@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import item_identifier as item_identifier_mod
-from item_identifier import ItemIdentifier
+import modules.item_identifier as item_identifier_mod
+from modules.item_identifier import ItemIdentifier
 
 
 def test_identify_missing_photo(tmp_path):
