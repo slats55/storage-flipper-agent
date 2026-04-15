@@ -1,0 +1,46 @@
+---
+description: Research→Plan→Execute→Review→Ship; tests before ship; maps Claude Code best practices to Cursor
+alwaysApply: true
+---
+
+# Agentic engineering (adapted from claude-code-best-practice)
+
+Source: [shanraisshan/claude-code-best-practice](https://github.com/shanraisshan/claude-code-best-practice) — same loop as their development workflows: **Research → Plan → Execute → Review → Ship**. Human-readable detail: **`docs/BEST_PRACTICES.md`**.
+
+## Claude Code → Cursor
+
+| Claude Code idea | In this project |
+|------------------|-----------------|
+| `CLAUDE.md` / memory | `AGENTS.md`, `CURSOR_HANDOFF.md`, `GAMEPLAN.md`, `TASKS.md`, `research/`, and this rule |
+| Plan mode | Use **Plan** for multi-step or ambiguous work |
+| Slash commands / skills | Cursor rules + optional user skills under `~/.cursor/skills-cursor/` |
+| Subagents / parallel compute | Hermes (research/runtime) + explicit task splits in prompts |
+| Hooks | Optional Cursor hooks for format/lint |
+
+## Agent behavior (apply every task)
+
+1. **Research** — Read relevant specs (`research/*.md` when present); search the codebase before editing.
+2. **Plan** — For non-trivial work, outline steps; avoid scope creep and drive-by refactors.
+3. **Execute** — Smallest diff that satisfies the request; match existing patterns (logging, retries, `modules.*` imports).
+4. **Review** — Run tests (below); fix failures before claiming done.
+5. **Ship** — Clear commit messages; integration concerns go to Hermes per `GAMEPLAN.md`.
+
+## Verify before finishing
+
+From project root (where `flipper_agent.py` lives):
+
+```bash
+pip install -r requirements.txt
+python -m pytest tests/ -q
+```
+
+Hermes CLI is mocked in tests; do not require a live `hermes` binary for unit tests.
+
+## Prompting
+
+- Prefer concrete specs over vague asks; reduce ambiguity before coding.
+- For risky or large changes: state assumptions; do not bundle unrelated files.
+
+## Rule size
+
+Keep individual rule files reasonably short (on the order of ~200 lines). Split topics into separate `.mdc` files if this grows.
