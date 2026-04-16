@@ -3,8 +3,10 @@ Listing Generator Module
 Creates optimized listings for multiple platforms
 """
 
-import json
+import logging
 from datetime import datetime
+
+logger = logging.getLogger("flipper.listing_generator")
 
 
 class ListingGenerator:
@@ -32,6 +34,7 @@ class ListingGenerator:
                 listings[platform] = listing
                 print(f"      ✓ {platform}")
             except Exception as e:
+                logger.warning("Listing failed for platform=%s: %s", platform, e, exc_info=True)
                 print(f"      ✗ {platform}: {e}")
         
         return listings

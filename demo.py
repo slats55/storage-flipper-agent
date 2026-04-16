@@ -3,21 +3,27 @@
 Demo script to test the Storage Flipper Agent
 """
 
+import logging
 import sys
 from pathlib import Path
 
-# Add modules to path
-sys.path.insert(0, str(Path(__file__).parent / "modules"))
+# Project root on path so ``modules.*`` imports resolve
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from item_identifier import ItemIdentifier
-from price_researcher import PriceResearcher
-from listing_generator import ListingGenerator
-from inventory_manager import InventoryManager
+from modules.agent_logging import configure_logging
+from modules.item_identifier import ItemIdentifier
+
+logger = logging.getLogger("flipper.demo")
+from modules.price_researcher import PriceResearcher
+from modules.listing_generator import ListingGenerator
+from modules.inventory_manager import InventoryManager
 
 
 def demo_single_item():
     """Demo processing a single item"""
-    
+    configure_logging()
+    logger.info("demo_single_item started")
+
     print("\n" + "="*70)
     print(" STORAGE FLIPPER AGENT - DEMO")
     print("="*70)

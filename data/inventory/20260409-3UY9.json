@@ -1,0 +1,98 @@
+{
+  "photo_path": "photos/vintage_camera.jpg",
+  "title": "Vintage Kodak Film Camera",
+  "brand": "Kodak",
+  "model": "Instamatic 104",
+  "category": "Collectibles",
+  "condition": "Good",
+  "features": [
+    "Working shutter",
+    "Clean lens",
+    "Original case included"
+  ],
+  "suggested_price": 25.0,
+  "price_range": [
+    0,
+    0
+  ],
+  "comp_count": 0,
+  "ebay_sold_prices": [],
+  "research_date": "2026-04-09T17:05:42.704797",
+  "search_query": "Kodak Vintage Kodak Film Camera",
+  "sku": "20260409-3UY9",
+  "listings": {
+    "ebay": {
+      "platform": "ebay",
+      "title": "Kodak Vintage Kodak Film Camera Instamatic 104 - Good",
+      "description": "\ud83d\udce6 Vintage Kodak Film Camera for Sale!\n\nCondition: Good\n\nFeatures:\n\u2022 Working shutter\n\u2022 Clean lens\n\u2022 Original case included\n\nBrand: Kodak\nModel: Instamatic 104\n\n\ud83d\udcee Fast shipping!\n\u2705 Check out my other listings\n\n\u2b50 From a smoke-free storage unit",
+      "price": 25.0,
+      "condition": "Good",
+      "category": "Collectibles",
+      "shipping": "calculated",
+      "photos": [
+        "photos/vintage_camera.jpg"
+      ],
+      "listing_type": "fixed_price",
+      "duration": "7_days"
+    },
+    "facebook": {
+      "platform": "facebook",
+      "title": "Kodak Vintage Kodak Film Camera Instamatic 104 - Good",
+      "description": "\ud83d\udce6 Vintage Kodak Film Camera for Sale!\n\nCondition: Good\n\nFeatures:\n\u2022 Working shutter\n\u2022 Clean lens\n\u2022 Original case included\n\nBrand: Kodak\nModel: Instamatic 104\n\n\ud83d\udcac Message me with any questions!\n\ud83d\ude97 Local pickup available\n\n\u2b50 From a smoke-free storage unit",
+      "price": 25.0,
+      "condition": "good",
+      "category": "Collectibles",
+      "photos": [
+        "photos/vintage_camera.jpg"
+      ],
+      "pickup_only": false
+    },
+    "mercari": {
+      "platform": "mercari",
+      "title": "Kodak Vintage Kodak Film Camera Instamatic 104 - Good",
+      "description": "\ud83d\udce6 Vintage Kodak Film Camera for Sale!\n\nCondition: Good\n\nFeatures:\n\u2022 Working shutter\n\u2022 Clean lens\n\u2022 Original case included\n\nBrand: Kodak\nModel: Instamatic 104\n\n\u2b50 From a smoke-free storage unit",
+      "price": 25.0,
+      "condition": "good",
+      "category": "Collectibles",
+      "photos": [
+        "photos/vintage_camera.jpg"
+      ],
+      "shipping_paid_by": "buyer"
+    },
+    "offerup": {
+      "platform": "offerup",
+      "title": "Kodak Vintage Kodak Film Camera Instamatic 104 - Good",
+      "description": "\ud83d\udce6 Vintage Kodak Film Camera for Sale!\n\nCondition: Good\n\nFeatures:\n\u2022 Working shutter\n\u2022 Clean lens\n\u2022 Original case included\n\nBrand: Kodak\nModel: Instamatic 104\n\n\u2b50 From a smoke-free storage unit",
+      "price": 25.0,
+      "condition": "Good",
+      "category": "Collectibles",
+      "photos": [
+        "photos/vintage_camera.jpg"
+      ],
+      "shipping_available": false
+    }
+  },
+  "inventory_record": {
+    "sku": "20260409-3UY9",
+    "title": "Vintage Kodak Film Camera",
+    "brand": "Kodak",
+    "category": "Collectibles",
+    "condition": "Good",
+    "cost": 0,
+    "suggested_price": 25.0,
+    "listed_price": 25.0,
+    "ebay_listed": "Yes",
+    "facebook_listed": "Yes",
+    "mercari_listed": "Yes",
+    "offerup_listed": "Yes",
+    "sold": "No",
+    "sold_platform": "",
+    "sold_price": 0,
+    "sold_date": "",
+    "date_acquired": "2026-04-09",
+    "date_listed": "2026-04-09",
+    "days_on_market": 0,
+    "photo_path": "photos/vintage_camera.jpg",
+    "notes": ""
+  }
+}
